@@ -4,20 +4,22 @@ import numpy as np
 
 
 
-left_image = cv.imread(left_image_path)
-right_image = cv.imread(right_image_path)
+left_image = cv.imread('TESTL.jpg')
+right_image = cv.imread('TESTR.jpg')
 
 
 
-def average_neighborhood(disparity):
-	
+# def average_neighborhood(disparity):
+# 	return
 
+# def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y, disparity):
+# 	return
 
-def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y, disparity):
-
-
+def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
+	return
 
 def feature_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y, disparity):
+	return
 
 
 
@@ -34,8 +36,8 @@ if method == 'region':
 elif method == 'feature':
 	disparity = feature_based()
 
-for i in range(2):
-	disparity = average_neighborhood(disparity)
+# for i in range(2):
+# 	disparity = average_neighborhood(disparity)
 
 disparity = cv.normalize(disparity, None, alpha=0, beta=255, norm_type=cv.NORM_MINMAX, dtype=cv.CV_8U)
 cv.imwrite('disparity.png', disparity)
