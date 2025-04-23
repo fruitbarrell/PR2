@@ -2,6 +2,7 @@ from tqdm import tqdm
 import cv2 as cv
 import numpy as np
 from score_functions import SAD,SSD,NCC
+from validition_functions import left_right_consistency_check
 
 def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
     if DISTANCE not in ["SAD","SSD","NCC"]:
@@ -56,50 +57,28 @@ def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_
                 Dmap[y,x]=best_offset
                 pbar.update(1)
 
-    return Dmap
+    return cv.cvtColor(Dmap,cv.COLOR_BGR2GRAY)
 
-def left_right_consistency_check(D_L, D_R, threshold=1):
 
-    h, w = D_L.shape[:2]
-    consistency_map = np.copy(D_L)
-    mask = np.zeros((h, w), dtype=np.uint8)
-    for y in range(h):
-        for x in range(w):
-            d=int(D_L[y, x])
-            x_r = x - d
+# left_image = cv.imread('TEST_images\TESTA_L.jpg')
+# right_image = cv.imread('TEST_images\TESTA_R.jpg')
 
-            if 0 <= x_r < w:
-                d_r = D_R[y, x_r]
-                if abs(d - d_r) > threshold:
-                    consistency_map[y, x] = 0  # invalid match
-            else:
-                consistency_map[y, x] = 0  # out of bounds
-            mask[y, x] = 255
+# D_L = region_based(left_image, right_image, "NCC", 64, 7, 7)
+# D_R = region_based(right_image, left_image, "NCC", 64, 7, 7)
 
-    return consistency_map
+#     # Normalize if not already
+# # D_L = cv.normalize(D_L, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
+# # D_R = cv.normalize(D_R, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
 
-left_image = cv.imread('TESTL.jpg')
-right_image = cv.imread('TESTR.jpg')
+# cv.imshow("DLmap",D_L)
+# cv.imshow("DRmap",D_R)
+# k= cv.waitKey()
+# cv.destroyAllWindows()
 
-left_image = cv.imread('TESTL.jpg')
-right_image = cv.imread('TESTR.jpg')
-
-D_L = region_based(left_image, right_image, "NCC", 64, 7, 7)
-D_R = region_based(right_image, left_image, "NCC", 64, 7, 7)
-
-    # Normalize if not already
-D_L = cv.normalize(D_L, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-D_R = cv.normalize(D_R, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-
-cv.imshow("DLmap",D_L)
-cv.imshow("DRmap",D_R)
-k= cv.waitKey()
-cv.destroyAllWindows()
-
-# Apply consistency check
-D_L_consistent = left_right_consistency_check(D_L, D_R)
-D_L_consistent = cv.normalize(D_L_consistent, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-    # cv.imwrite("SSDMap.jpg",Dmap)
-cv.imshow("Dmap",D_L_consistent)
-k= cv.waitKey()
-cv.destroyAllWindows()
+# # Apply consistency check
+# D_L_consistent = left_right_consistency_check(D_L, D_R)
+# D_L_consistent = cv.normalize(D_L_consistent, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
+# # cv.imwrite("SSDMap.jpg",Dmap)
+# cv.imshow("Dmap",D_L_consistent)
+# k= cv.waitKey()
+# cv.destroyAllWindows()

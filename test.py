@@ -1,6 +1,6 @@
 import cv2
 # Load the .ppm image
-img = cv2.imread('scene1.row3.col2.ppm')
+img = cv2.imread('im4.ppm')
 
 # Save it as .jpg
-cv2.imwrite('scene1.row3.col2.jpg', img)
+cv2.imwrite('TESTA_R.jpg', img)

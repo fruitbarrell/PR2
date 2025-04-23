@@ -2,7 +2,7 @@ from tqdm import tqdm
 import cv2 as cv
 import numpy as np
 from score_functions import SAD,SSD,NCC
-from validition_functions import fill_disparity_gaps_adaptive,left_right_consistency_check
+from validition_functions import fill_disparity_gaps_adaptive
 import multiprocessing
 
 def extract_patch(image, pt, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
@@ -63,12 +63,12 @@ def feature_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE
     grayR=np.float32(cv.cvtColor(right_image,cv.COLOR_BGR2GRAY))
 
     featuresL=cv.cornerHarris(grayL, blockSize=2, ksize=3, k=0.045)
-    # featuresL=np.argwhere(featuresL> 0.00000001 * featuresL.max()) # This should return a coordinates array
-    featuresL=np.argwhere(featuresL)
+    featuresL=np.argwhere(featuresL> 0.0000000001 * featuresL.max()) # This should return a coordinates array
+    # featuresL=np.argwhere(featuresL)
 
     featuresR=cv.cornerHarris(grayR, blockSize=2, ksize=3, k=0.045)
-    # featuresR=np.argwhere(featuresR> 0.00000001 * featuresR.max()) # This should return a coordinates array
-    featuresR=np.argwhere(featuresR)
+    featuresR=np.argwhere(featuresR> 0.0000000001 * featuresR.max()) # This should return a coordinates array
+    # featuresR=np.argwhere(featuresR)
 
     
     args_list = [(pt1, grayL, grayR, featuresR, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y) for pt1 in featuresL]
@@ -92,28 +92,3 @@ def feature_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE
 
 
 
-if __name__ == '__main__':
-    import multiprocessing
-    multiprocessing.freeze_support() 
-    left_image = cv.imread('TESTL.jpg')
-    right_image = cv.imread('TESTR.jpg')
-
-    D_L = feature_based(left_image, right_image, "NCC", 64, 7, 7)
-    D_R = feature_based(right_image, left_image, "NCC", 64, 7, 7)
-
-    # # Normalize if not already
-    # D_L = cv.normalize(D_L, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-    # D_R = cv.normalize(D_R, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-
-    cv.imshow("DLmap",D_L)
-    cv.imshow("DRmap",D_R)
-    k= cv.waitKey()
-    cv.destroyAllWindows()
-
-# Apply consistency check
-    D_L_consistent = left_right_consistency_check(D_L, D_R)
-    D_L_consistent = cv.normalize(D_L_consistent, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-    # cv.imwrite("SSDMap.jpg",Dmap)
-    cv.imshow("Dmap",D_L_consistent)
-    k= cv.waitKey()
-    cv.destroyAllWindows()
