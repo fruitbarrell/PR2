@@ -4,7 +4,7 @@ import numpy as np
 from score_functions import SAD,SSD,NCC
 from validition_functions import left_right_consistency_check
 
-def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
+def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y,direction="L2R"):
     if DISTANCE not in ["SAD","SSD","NCC"]:
         print("Incorrect input for DISTANCE")
         return
@@ -14,6 +14,9 @@ def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_
     halfX=TEMPLATE_SIZE_X//2
     
 
+    if direction == "R2L":
+        left_image, right_image = right_image, left_image
+    
     total_pixels = (h - 2*halfY) * (w - halfX - SEARCH_RANGE - halfX)
     with tqdm(total=total_pixels, desc="Block Matching Progress") as pbar:
         for y in range(halfY,h - halfY):
@@ -30,8 +33,11 @@ def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_
                     
 
                 for d in range(SEARCH_RANGE):
-                    x_right= x -d
-                    if x_right - halfX < 0:
+                    if direction == "L2R":
+                        x_right = x - d
+                    else:  # R2L
+                        x_right = x + d
+                    if x_right - halfX < 0 or x_right + halfX >= w:
                         continue
 
                     right_block=right_image[y-halfY: y+halfY+1, x_right-halfX:x_right+halfX+1]
