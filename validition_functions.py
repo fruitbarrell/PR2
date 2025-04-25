@@ -13,6 +13,21 @@ def fill_disparity_gaps_adaptive(disparity_map, min_valid=5, max_window=15):
     Returns:
         Filled disparity map (same shape as input)
     """
+    
+    # --- Type and value checks ---
+    if not isinstance(disparity_map, np.ndarray):
+        print("Error: 'disparity_map' must be a numpy array.")
+        return None
+    if disparity_map.ndim != 2:
+        print("Error: 'disparity_map' must be a 2D array.")
+        return None
+    if not isinstance(min_valid, int) or min_valid <= 0:
+        print("Error: 'min_valid' must be a positive integer.")
+        return None
+    if not isinstance(max_window, int) or max_window % 2 == 0 or max_window <= 1:
+        print("Error: 'max_window' must be an odd integer greater than 1.")
+        return None
+    
     h, w = disparity_map.shape
     filled_map = disparity_map.copy()
 
@@ -39,6 +54,30 @@ def fill_disparity_gaps_adaptive(disparity_map, min_valid=5, max_window=15):
 
 
 def left_right_consistency_check(D_L, D_R, threshold=1):
+    """
+    Perform left-right consistency check on disparity maps to remove mismatches.
+
+    Parameters:
+        D_L: Disparity map computed from Left to Right (2D numpy array)
+        D_R: Disparity map computed from Right to Left (2D numpy array)
+        threshold: Maximum allowed difference between corresponding disparities
+
+    Returns:
+        Refined disparity map (2D numpy array, 8-bit) with invalid matches removed and gaps filled
+    """
+    if not isinstance(D_L, np.ndarray) or not isinstance(D_R, np.ndarray):
+        print("Error: 'D_L' and 'D_R' must both be numpy arrays.")
+        return None
+    if D_L.shape != D_R.shape:
+        print("Error: 'D_L' and 'D_R' must have the same shape.")
+        return None
+    if D_L.ndim != 2 or D_R.ndim != 2:
+        print("Error: Disparity maps must be 2D arrays.")
+        return None
+    if not isinstance(threshold, int) or threshold < 0:
+        print("Error: 'threshold' must be a non-negative integer.")
+        return None
+    
     h, w = D_L.shape[:2]
     D_L = D_L.astype(np.int32)
     D_R = D_R.astype(np.int32)

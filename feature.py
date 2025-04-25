@@ -2,10 +2,38 @@ from tqdm import tqdm
 import cv2 as cv
 import numpy as np
 from score_functions import SAD,SSD,NCC
-from validition_functions import fill_disparity_gaps_adaptive
 import multiprocessing
 
 def extract_patch(image, pt, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
+    """
+    Extract a rectangular patch centered at a given point from the input image.
+
+    Parameters:
+        image: 2D numpy array (grayscale image)
+        pt: Tuple (y, x) representing the center of the patch
+        TEMPLATE_SIZE_X: Width of the patch
+        TEMPLATE_SIZE_Y: Height of the patch
+
+    Returns:
+        Patch as a 2D numpy array, or None if the patch extends beyond image boundaries
+    """
+     # --- Type and value checks ---
+    if not isinstance(image, np.ndarray):
+        print("Error: 'image' must be a numpy array.")
+        return None
+    if image.ndim != 2:
+        print("Error: 'image' must be a 2D (grayscale) array.")
+        return None
+    if not (isinstance(pt, tuple) and len(pt) == 2 and all(isinstance(i, int) for i in pt)):
+        print("Error: 'pt' must be a tuple of two integers (y, x).")
+        return None
+    if not (isinstance(TEMPLATE_SIZE_X, int)  == 1 and TEMPLATE_SIZE_X > 1):
+        print("Error: 'TEMPLATE_SIZE_X' must be an  integer greater than 1.")
+        return None
+    if not (isinstance(TEMPLATE_SIZE_Y, int)  and TEMPLATE_SIZE_Y > 1):
+        print("Error: 'TEMPLATE_SIZE_Y' must be an  integer greater than 1.")
+        return None
+    
     y, x = pt
     halfY=TEMPLATE_SIZE_Y//2
     halfX=TEMPLATE_SIZE_X//2
@@ -15,6 +43,27 @@ def extract_patch(image, pt, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
     return image[y-halfY:y+halfY+1, x-halfX:x+halfX+1]
 
 def match_feature(args):
+        """
+        WARNING: THIS FUNCTION IS NOT MEANT TO BE USED OUTSIDE THE FEATURE BASED FUNCTION BELOW
+        
+        Match a feature point from the left image with the best corresponding point in the right image 
+        based on a block similarity metric.
+
+        Parameters:
+            args: Tuple containing:
+                - pt1: Feature point in left image
+                - grayL: Grayscale left image
+                - grayR: Grayscale right image
+                - featuresR: List of feature points in right image
+                - DISTANCE: Matching method ("SAD", "SSD", or "NCC")
+                - SEARCH_RANGE: Maximum horizontal distance to search
+                - TEMPLATE_SIZE_X: Width of the matching patch
+                - TEMPLATE_SIZE_Y: Height of the matching patch
+
+        Returns:
+            Tuple (pt1, best_offset): pt1 is the feature point in the left image, 
+            best_offset is the best match offset in the x-direction (disparity), or (None, None) if no match found
+        """
         pt1, grayL, grayR, featuresR, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y = args
         left_block = extract_patch(grayL, pt1, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y)
         if left_block is None:
@@ -50,14 +99,46 @@ def match_feature(args):
 
 
 def feature_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
+    """
+    Perform feature-based stereo matching using Harris corners and block matching.
+
+    Parameters:
+        left_image: Left stereo image (BGR format)
+        right_image: Right stereo image (BGR format)
+        DISTANCE: Block comparison method ("SAD", "SSD", or "NCC")
+        SEARCH_RANGE: Maximum search range in x-direction (disparity range)
+        TEMPLATE_SIZE_X: Width of the matching block
+        TEMPLATE_SIZE_Y: Height of the matching block
+
+    Returns:
+        Disparity map (2D numpy array of same width and height as input images)
+    """
+     # --- Type and value checks ---
+    if not isinstance(left_image, np.ndarray):
+        print("Error: 'left_image' must be a numpy array.")
+        return None
+    if not isinstance(right_image, np.ndarray):
+        print("Error: 'right_image' must be a numpy array.")
+        return None
+    if DISTANCE not in ["SAD", "SSD", "NCC"]:
+        print("Error: 'DISTANCE' must be one of ['SAD', 'SSD', 'NCC'].")
+        return None
+    if not isinstance(SEARCH_RANGE, int) or SEARCH_RANGE <= 0:
+        print("Error: 'SEARCH_RANGE' must be a positive integer.")
+        return None
+    if not isinstance(TEMPLATE_SIZE_X, int) or TEMPLATE_SIZE_X <= 0 :
+        print("Error: 'TEMPLATE_SIZE_X' must be an positive integer.")
+        return None
+    if not isinstance(TEMPLATE_SIZE_Y, int) or TEMPLATE_SIZE_Y <= 0:
+        print("Error: 'TEMPLATE_SIZE_Y' must be an positive integer.")
+        return None
     if DISTANCE not in ["SAD","SSD","NCC"]:
         print("Incorrect input for DISTANCE")
         return
     h,w = left_image.shape[:2]
     Dmap= np.zeros((h, w), dtype=np.uint8)
     mask = np.zeros((h, w), dtype=np.uint8)
-    halfY=TEMPLATE_SIZE_Y//2
-    halfX=TEMPLATE_SIZE_X//2
+  
 
     grayL=np.float32(cv.cvtColor(left_image,cv.COLOR_BGR2GRAY))
     grayR=np.float32(cv.cvtColor(right_image,cv.COLOR_BGR2GRAY))
@@ -84,9 +165,6 @@ def feature_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE
         Dmap[y, x] = min(255, value)
         mask[y, x] = 255
 
-    #Next two lines are to clear out the disparity map
-    Dmap_inpainted = cv.inpaint(Dmap, 255 - mask, 3, cv.INPAINT_TELEA)
-    Dmap_inpainted = cv.bilateralFilter(Dmap_inpainted,9,75,75)
     return Dmap
 
 

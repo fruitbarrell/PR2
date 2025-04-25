@@ -2,12 +2,47 @@ from tqdm import tqdm
 import cv2 as cv
 import numpy as np
 from score_functions import SAD,SSD,NCC
-from validition_functions import left_right_consistency_check
+
 
 def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y,direction="L2R"):
-    if DISTANCE not in ["SAD","SSD","NCC"]:
-        print("Incorrect input for DISTANCE")
-        return
+    """
+    Perform region-based stereo matching using block comparison methods over the entire image.
+
+    Parameters:
+        left_image: Left stereo image (BGR format)
+        right_image: Right stereo image (BGR format)
+        DISTANCE: Block comparison method ("SAD", "SSD", or "NCC")
+        SEARCH_RANGE: Maximum disparity to search in x-direction
+        TEMPLATE_SIZE_X: Width of the matching block
+        TEMPLATE_SIZE_Y: Height of the matching block
+        direction: Matching direction ("L2R" for Left-to-Right, "R2L" for Right-to-Left)
+
+    Returns:
+        Grayscale disparity map as a 2D numpy array (same height and width as input images)
+    """
+    # --- Type and value checks ---
+    if not isinstance(left_image, np.ndarray):
+        print("Error: 'left_image' must be a numpy array.")
+        return None
+    if not isinstance(right_image, np.ndarray):
+        print("Error: 'right_image' must be a numpy array.")
+        return None
+    if DISTANCE not in ["SAD", "SSD", "NCC"]:
+        print("Error: 'DISTANCE' must be one of ['SAD', 'SSD', 'NCC'].")
+        return None
+    if not isinstance(SEARCH_RANGE, int) or SEARCH_RANGE <= 0:
+        print("Error: 'SEARCH_RANGE' must be a positive integer.")
+        return None
+    if not isinstance(TEMPLATE_SIZE_X, int) or TEMPLATE_SIZE_X <= 0 :
+        print("Error: 'TEMPLATE_SIZE_X' must be an positive integer.")
+        return None
+    if not isinstance(TEMPLATE_SIZE_Y, int) or TEMPLATE_SIZE_Y <= 0:
+        print("Error: 'TEMPLATE_SIZE_Y' must be an positive integer.")
+        return None
+    if direction not in ["L2R", "R2L"]:
+        print("Error: 'direction' must be either 'L2R' or 'R2L'.")
+        return None
+    
     h,w = left_image.shape[:2]
     Dmap= np.zeros_like(left_image)
     halfY=TEMPLATE_SIZE_Y//2
@@ -65,26 +100,3 @@ def region_based(left_image, right_image, DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_
 
     return cv.cvtColor(Dmap,cv.COLOR_BGR2GRAY)
 
-
-# left_image = cv.imread('TEST_images\TESTA_L.jpg')
-# right_image = cv.imread('TEST_images\TESTA_R.jpg')
-
-# D_L = region_based(left_image, right_image, "NCC", 64, 7, 7)
-# D_R = region_based(right_image, left_image, "NCC", 64, 7, 7)
-
-#     # Normalize if not already
-# # D_L = cv.normalize(D_L, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-# # D_R = cv.normalize(D_R, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-
-# cv.imshow("DLmap",D_L)
-# cv.imshow("DRmap",D_R)
-# k= cv.waitKey()
-# cv.destroyAllWindows()
-
-# # Apply consistency check
-# D_L_consistent = left_right_consistency_check(D_L, D_R)
-# D_L_consistent = cv.normalize(D_L_consistent, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-# # cv.imwrite("SSDMap.jpg",Dmap)
-# cv.imshow("Dmap",D_L_consistent)
-# k= cv.waitKey()
-# cv.destroyAllWindows()

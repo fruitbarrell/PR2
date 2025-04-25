@@ -1,6 +1,7 @@
-import cv2
-# Load the .ppm image
-img = cv2.imread('im1.ppm')
+import cv2 as cv
 
-# Save it as .jpg
-cv2.imwrite('TEST_images/VENUS_R.jpg', img)
+img=cv.imread("feature_output/SSD/size7x7.jpg")
+blur=cv.medianBlur(img,9)
+cv.imshow("blur",blur)
+k= cv.waitKey()
+cv.destroyAllWindows
