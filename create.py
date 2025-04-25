@@ -15,24 +15,32 @@ if __name__ == '__main__':
 
     print("Starting")
     print("Enter the number of the input of images to work with:")
-    print("1. Tsukuba input")
-    print("2. Sawtooth input")
-    print("3. Venus input")
+    print("1. Tsukuba pair")
+    print("2. Sawtooth pair")
+    print("3. Venus pair")
+    print("4. Bull pair")
+    print("5. Poster pair")
 
     choice=None
-    while choice not in [1, 2, 3]:
-        choice = int(input("Your choice (1-3): "))
+    while choice not in [1, 2, 3, 4, 5]:
+        choice = int(input("Your choice (1-5): "))
         if (choice==1):
-            left_image = cv.imread('TEST_images\Tsukuba_L.jpg')
-            right_image = cv.imread('TEST_images\Tsukuba_R.jpg')
+            left_image = cv.imread('TEST_images/Tsukuba_L.jpg')
+            right_image = cv.imread('TEST_images/Tsukuba_R.jpg')
         elif (choice==2):
-            left_image = cv.imread('TEST_images\sawtooth_L.jpg')
-            right_image = cv.imread('TEST_images\sawtooth_R.jpg')
+            left_image = cv.imread('TEST_images/sawtooth_L.jpg')
+            right_image = cv.imread('TEST_images/sawtooth_R.jpg')
         elif (choice==3):
-            left_image = cv.imread('TEST_images\VENUS_L.jpg')
-            right_image = cv.imread('TEST_images\VENUS_R.jpg')
+            left_image = cv.imread('TEST_images/VENUS_L.jpg')
+            right_image = cv.imread('TEST_images/VENUS_R.jpg')
+        elif (choice==4):
+            left_image = cv.imread('TEST_images/bull_L.jpg')
+            right_image = cv.imread('TEST_images/bull_R.jpg')
+        elif (choice==5):
+            left_image = cv.imread('TEST_images/Poster_L.jpg')
+            right_image = cv.imread('TEST_images/Poster_R.jpg')
         else:
-            print("Please input a number from 1-3")
+            print("Please input a number from 1-5")
     
     if left_image is None or right_image is None:
         print("Error: Could not load one or both images.")
@@ -97,12 +105,15 @@ if __name__ == '__main__':
         if (choice==1):
             D_L = feature_based(left_image, right_image , DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_X)
             print("Left to right done")
+            cv.imshow("Dmap",D_L)
+            k= cv.waitKey()
+            cv.destroyAllWindows()
             D_R=feature_based(right_image, left_image , DISTANCE, SEARCH_RANGE, TEMPLATE_SIZE_X, TEMPLATE_SIZE_X)
             print("Right to Left done")
             print("Commencing consistency check")
             D_L_consistent = left_right_consistency_check(D_L,D_R)
             D_L_consistent = cv.normalize(D_L_consistent, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-            cv.imwrite(f"feature_output\{DISTANCE}\size{TEMPLATE_SIZE_X}x{TEMPLATE_SIZE_Y}.jpg",D_L_consistent)
+            cv.imwrite(f"feature_output/{DISTANCE}/size{TEMPLATE_SIZE_X}x{TEMPLATE_SIZE_Y}.jpg",D_L_consistent)
             cv.imshow("Dmap",D_L_consistent)
             k= cv.waitKey()
             cv.destroyAllWindows()
@@ -119,7 +130,7 @@ if __name__ == '__main__':
             print("Commencing averaging in the neighbourhood")
             D_L_consistent = left_right_consistency_check(D_L,D_R)
             D_L_consistent = cv.normalize(D_L_consistent, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8U)
-            cv.imwrite(f"region_output\{DISTANCE}\size{TEMPLATE_SIZE_X}x{TEMPLATE_SIZE_Y}.jpg",D_L_consistent)
+            cv.imwrite(f"region_output/{DISTANCE}/size{TEMPLATE_SIZE_X}x{TEMPLATE_SIZE_Y}.jpg",D_L_consistent)
             cv.imshow("Dmap",D_L_consistent)
             k= cv.waitKey()
             cv.destroyAllWindows()
