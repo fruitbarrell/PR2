@@ -24,9 +24,6 @@ def extract_patch(image, pt, TEMPLATE_SIZE_X, TEMPLATE_SIZE_Y):
     if image.ndim != 2:
         print("Error: 'image' must be a 2D (grayscale) array.")
         return None
-    if not (isinstance(pt, tuple) and len(pt) == 2 and all(isinstance(i, int) for i in pt)):
-        print("Error: 'pt' must be a tuple of two integers (y, x).")
-        return None
     if not (isinstance(TEMPLATE_SIZE_X, int)  == 1 and TEMPLATE_SIZE_X > 1):
         print("Error: 'TEMPLATE_SIZE_X' must be an  integer greater than 1.")
         return None
